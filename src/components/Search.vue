@@ -1,38 +1,41 @@
 <template>
     <div class="search-results">
-      <div class="search-result" v-bind:key="searchResult.id.videoId" v-for="searchResult in searchResults">
-        <div class="card channel" v-if="searchResult.id.kind == 'youtube#channel'">
+      <div class="search-result" v-bind:key="searchResult.id.videoId" v-for="searchResult in filteredResults">
+        <div class="card channel" v-if="searchResult.kind == 'youtube#channel'">
           <div class="card-image">
-            <router-link :to="`/channel/${searchResult.id.channelId}`">
+            <router-link :to="`/channel/${searchResult.id}`">
               <img :src="searchResult.snippet.thumbnails.default.url" :alt="searchResult.snippet.description">
             </router-link>
           </div>
           <div class="card-details">
-            <router-link :to="`/channel/${searchResult.id.channelId}`">
+            <router-link :to="`/channel/${searchResult.id}`">
               <h3>{{searchResult.snippet.title}}</h3>
             </router-link>
+            <p>{{searchResult.statistics.videoCount}} Videos</p>
+            <p>{{searchResult.statistics.subscriberCount}} Subscribers</p>
           </div>
         </div>
-        <div class="card video" v-if="searchResult.id.kind == 'youtube#video'">
+        <div class="card video" v-if="searchResult.kind == 'youtube#video'">
           <div class="card-image">
-            <router-link :to="`/video/${searchResult.id.videoId}`">
+            <router-link :to="`/video/${searchResult.id}`">
               <img :src="searchResult.snippet.thumbnails.default.url" :alt="searchResult.snippet.description">
             </router-link>
           </div>
           <div class="card-details">
-            <router-link :to="`/video/${searchResult.id.videoId}`">
+            <router-link :to="`/video/${searchResult.id}`">
               <h3>{{searchResult.snippet.title}}</h3>
             </router-link>
             <router-link :to="`/channel/${searchResult.snippet.channelId}`">
               <p>{{searchResult.snippet.channelTitle}}</p>
             </router-link>
+            <p>{{searchResult.statistics.viewCount}} Views</p>
           </div>
         </div>
       </div>
 
       <div class="load-more">
-        <!-- <button @click="loadMore" v-if="!loading">Load More Results</button> -->
-        <div class="spinner-container">
+        <button @click="loadMore" v-if="!loading">Show more items</button>
+        <div class="spinner-container" v-if="loading">
           <div class="lds-default">
             <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
           </div>
@@ -79,7 +82,7 @@ export default {
   },
   created() {
     if (this.videoId && this.videoId.length > 0) {
-      this.url += `&relatedToVideoId=${this.relVideoId}&type=video`
+      this.url += `&relatedToVideoId=${this.relVideoId}&type=video`;
     } else if (this.channelId && this.channelId.length > 0) {
       this.url += `&channelId=${this.channelId}`;
     } else if (this.searchText && this.searchText.length > 0) {
@@ -91,13 +94,19 @@ export default {
       console.log('data', data);
       this.pageToken = data.body.nextPageToken;
       data.body.items.forEach(element => {
-        let id = element.id.videoId;
-        this.$http.get(`https://www.googleapis.com/youtube/v3/videos?part=snippet%2Cstatistics&id=${id}&key=AIzaSyBObo-4LwV58IPz2qzPBHkrlBnYlBCLpog`)
+        if(element.id.videoId) {
+          let id = element.id.videoId;
+          this.$http.get(`https://www.googleapis.com/youtube/v3/videos?part=snippet%2Cstatistics&id=${id}&key=AIzaSyBObo-4LwV58IPz2qzPBHkrlBnYlBCLpog`)
           .then(data => {
-            console.log('video-data', data);
             this.searchResults.push(data.body.items[0]);
-            console.log(this.searchResults);
           });
+        } else if (element.id.channelId) {
+          let id = element.id.channelId;
+          this.$http.get(`https://www.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails%2Cstatistics%2CbrandingSettings&id=${id}&key=AIzaSyBObo-4LwV58IPz2qzPBHkrlBnYlBCLpog`)
+            .then(data => {
+              this.searchResults.unshift(data.body.items[0]);
+            });
+        }
       });
     });
   },
@@ -109,11 +118,23 @@ export default {
       .then(data => {
         this.pageToken = data.body.nextPageToken;
         data.body.items.forEach(element => {
-          this.searchResults.push(element);
+          if(element.id.videoId) {
+            let id = element.id.videoId;
+            this.$http.get(`https://www.googleapis.com/youtube/v3/videos?part=snippet%2Cstatistics&id=${id}&key=AIzaSyBObo-4LwV58IPz2qzPBHkrlBnYlBCLpog`)
+            .then(data => {
+              this.searchResults.push(data.body.items[0]);
+            });
+          } else if (element.id.channelId) {
+            let id = element.id.channelId;
+            this.$http.get(`https://www.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails%2Cstatistics%2CbrandingSettings&id=${id}&key=AIzaSyBObo-4LwV58IPz2qzPBHkrlBnYlBCLpog`)
+              .then(data => {
+                this.searchResults.push(data.body.items[0]);
+              });
+          }
         });
         this.loading = false;
       });
-    },
+    }
   }
 }
 </script>
@@ -121,10 +142,24 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
   .search-results {
+    padding: 20px 0;
     .search-result {
       padding: 10px 20px;
       .card {
         display: flex;
+        a {
+          text-decoration: none;
+          cursor: pointer;
+          h3 {
+            color: #000;
+          }
+        }
+        p {
+          color: gray;
+        }
+        .card-details {
+          padding-left: 2rem;
+        }
       }
     }
     .load-more {

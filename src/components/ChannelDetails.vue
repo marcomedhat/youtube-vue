@@ -7,7 +7,7 @@
       </div>
       <div class="channel-details">
         <h2 class="channel-title">{{channelTitle}}</h2>
-        <p class="channel-subscribers">{{channelSubscribers}}</p>
+        <p class="channel-subscribers">{{channelSubscribers}} - Subscribers</p>
       </div> 
     </div>
     <Search :channelId="channelId"></Search> 
@@ -78,10 +78,13 @@ export default {
     transform: scale(0.9);
   }
   &-details {
-    height: 75px;
+    height: 80px;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    padding: 0 1.5rem;
+    font-size: 0.7rem;
+    width: 60%;
   }
 }
 </style>
