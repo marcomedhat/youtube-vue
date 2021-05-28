@@ -7,7 +7,7 @@
     </div>
     <div class="search-results" v-if="filteredResults.length > 0">
       <FilterSection :type="type" v-on:filter="filter" />
-      <div class="search-result" v-bind:key="searchResult.id.videoId" v-for="searchResult in filteredResults">
+      <div class="search-result" v-bind:key="searchResult.id" v-for="searchResult in filteredResults">
         <div class="card channel" v-if="searchResult.kind == 'youtube#channel'">
           <div class="card-image">
             <router-link :to="`/channel/${searchResult.id}`">
@@ -85,7 +85,7 @@ export default {
   data() {
     return {
       searchText: this.$route.query.query,
-      url: 'https://www.googleapis.com/youtube/v3/search?part=snippet&key=AIzaSyBObo-4LwV58IPz2qzPBHkrlBnYlBCLpog',
+      url: 'https://www.googleapis.com/youtube/v3/search?part=snippet&key=AIzaSyBbAGlJBPcVPgZE_mr2bYHJFmGe9l-egQQ',
       pageToken: '',
       searchResults: [],
       relVideoId: '',
@@ -112,7 +112,7 @@ export default {
       data.body.items.forEach(element => {
         if(element.id.videoId) {
           let id = element.id.videoId;
-          this.$http.get(`https://www.googleapis.com/youtube/v3/videos?part=snippet%2Cstatistics&id=${id}&key=AIzaSyBObo-4LwV58IPz2qzPBHkrlBnYlBCLpog`)
+          this.$http.get(`https://www.googleapis.com/youtube/v3/videos?part=snippet%2Cstatistics&id=${id}&key=AIzaSyBbAGlJBPcVPgZE_mr2bYHJFmGe9l-egQQ`)
           .then(data => {
             this.searchResults.push(data.body.items[0]);
             this.filteredResults.push(data.body.items[0]);
@@ -120,7 +120,7 @@ export default {
           });
         } else if (element.id.channelId) {
           let id = element.id.channelId;
-          this.$http.get(`https://www.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails%2Cstatistics%2CbrandingSettings&id=${id}&key=AIzaSyBObo-4LwV58IPz2qzPBHkrlBnYlBCLpog`)
+          this.$http.get(`https://www.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails%2Cstatistics%2CbrandingSettings&id=${id}&key=AIzaSyBbAGlJBPcVPgZE_mr2bYHJFmGe9l-egQQ`)
             .then(data => {
               this.searchResults.unshift(data.body.items[0]);
               this.filteredResults.unshift(data.body.items[0]);
@@ -140,13 +140,13 @@ export default {
         data.body.items.forEach(element => {
           if(element.id.videoId) {
             let id = element.id.videoId;
-            this.$http.get(`https://www.googleapis.com/youtube/v3/videos?part=snippet%2Cstatistics&id=${id}&key=AIzaSyBObo-4LwV58IPz2qzPBHkrlBnYlBCLpog`)
+            this.$http.get(`https://www.googleapis.com/youtube/v3/videos?part=snippet%2Cstatistics&id=${id}&key=AIzaSyBbAGlJBPcVPgZE_mr2bYHJFmGe9l-egQQ`)
             .then(data => {
               this.searchResults.push(data.body.items[0]);
             });
           } else if (element.id.channelId) {
             let id = element.id.channelId;
-            this.$http.get(`https://www.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails%2Cstatistics%2CbrandingSettings&id=${id}&key=AIzaSyBObo-4LwV58IPz2qzPBHkrlBnYlBCLpog`)
+            this.$http.get(`https://www.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails%2Cstatistics%2CbrandingSettings&id=${id}&key=AIzaSyBbAGlJBPcVPgZE_mr2bYHJFmGe9l-egQQ`)
               .then(data => {
                 this.searchResults.push(data.body.items[0]);
               });
@@ -177,7 +177,7 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
   .search-results {
-    padding: 20px 0;
+    padding-top: 20px;
     .search-result {
       margin: 10px 20px;
       .card {
@@ -187,10 +187,15 @@ export default {
           cursor: pointer;
           h3 {
             color: #000;
+            margin-bottom: 10px;
+          }
+          p:hover {
+            color: darkgray;
           }
         }
         p {
           color: gray;
+          margin-bottom: 5px;
         }
         .card-details {
           padding-left: 2rem;
@@ -310,6 +315,10 @@ export default {
   }
 }
 @media only screen and (min-width: 768px) {
-
+  .search-results {
+    .search-result {
+      margin: 10px 5%; 
+    }
+  }
 }
 </style>
