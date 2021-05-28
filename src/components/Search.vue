@@ -1,5 +1,11 @@
 <template>
-    <div class="search-results">
+  <div class="results">
+    <div class="spinner-container mobile" v-if="filteredResults.length == 0">
+      <div class="lds-default">
+        <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+      </div>
+    </div>
+    <div class="search-results" v-if="filteredResults.length > 0">
       <FilterSection :type="type" v-on:filter="filter" />
       <div class="search-result" v-bind:key="searchResult.id.videoId" v-for="searchResult in filteredResults">
         <div class="card channel" v-if="searchResult.kind == 'youtube#channel'">
@@ -44,6 +50,8 @@
       </div>
       
     </div>
+  </div>
+    
 </template>
 
 <script>
@@ -99,6 +107,7 @@ export default {
     this.searchResults = [];
     this.$http.get(this.url)
     .then(data => {
+      console.log('data', data);
       this.pageToken = data.body.nextPageToken;
       data.body.items.forEach(element => {
         if(element.id.videoId) {
@@ -107,6 +116,7 @@ export default {
           .then(data => {
             this.searchResults.push(data.body.items[0]);
             this.filteredResults.push(data.body.items[0]);
+            console.log('channel', data.body.items[0]);
           });
         } else if (element.id.channelId) {
           let id = element.id.channelId;
@@ -114,6 +124,7 @@ export default {
             .then(data => {
               this.searchResults.unshift(data.body.items[0]);
               this.filteredResults.unshift(data.body.items[0]);
+              console.log('video', data.body.items[0]);
             });
         }
       });
@@ -168,7 +179,7 @@ export default {
   .search-results {
     padding: 20px 0;
     .search-result {
-      padding: 10px 20px;
+      margin: 10px 20px;
       .card {
         display: flex;
         a {
@@ -184,6 +195,11 @@ export default {
         .card-details {
           padding-left: 2rem;
         }
+        &.channel {
+          img {
+            border-radius: 50%;
+          }
+        }
       }
     }
     .load-more {
@@ -198,9 +214,17 @@ export default {
         background-color: #fff;
         color: #000;
       }
-      .spinner-container {
-        margin-left: -42.5px;
-      }
+      
+    }
+  }
+  .spinner-container {
+    margin-left: -42.5px;
+    &.mobile {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
   }
 .lds-default {
@@ -213,7 +237,7 @@ export default {
   position: absolute;
   width: 6px;
   height: 6px;
-  background: #000;
+  background: gray;
   border-radius: 50%;
   animation: lds-default 1.2s linear infinite;
 }
@@ -284,5 +308,8 @@ export default {
   50% {
     transform: scale(1.5);
   }
+}
+@media only screen and (min-width: 768px) {
+
 }
 </style>
