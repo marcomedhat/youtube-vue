@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <Header></Header>
-    <router-view />
+    <router-view class="content" />
   </div>
 </template>
 
@@ -33,5 +33,12 @@ export default {
 body {
   width: 100%;
   height: 100%;
+  background-color: #f3f3f3;
+  font-family: sans-serif;
+}
+@media only screen and (min-width: 768px) {
+  .content {
+    padding-top: 80px;
+  }
 }
 </style>
