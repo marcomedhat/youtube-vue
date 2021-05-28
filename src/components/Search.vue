@@ -6,7 +6,6 @@
       </div>
     </div>
     <div class="search-results" v-if="filteredResults.length > 0">
-      <FilterSection :type="type" v-on:filter="filter" />
       <div class="search-result" v-bind:key="searchResult.id" v-for="searchResult in filteredResults">
         <div class="card channel" v-if="searchResult.kind == 'youtube#channel'">
           <div class="card-image">
@@ -55,11 +54,10 @@
 </template>
 
 <script>
-import FilterSection from './Filter.vue'
 
 export default {
   name: 'Home',
-  props: ['videoId', 'channelId'],
+  props: ['videoId', 'channelId', 'type'],
   watch: {
     videoId: {
       immediate: true, 
@@ -77,10 +75,14 @@ export default {
       if(from.query.query && to.query.query){ 
         this.$router.go()
         }    
+    },
+    type: {
+      immediate: true, 
+      handler (val) {
+        this.selectedType = val;
+        this.filter(this.selectedType);
+      }
     }
-  },
-  components: {
-    FilterSection
   },
   data() {
     return {
@@ -91,12 +93,11 @@ export default {
       relVideoId: '',
       relChannelId: '',
       loading: false,
-      type: 'all',
+      selectedType: 'all',
       filteredResults: []
     }
   },
   created() {
-    // this.type = 'all';
     if (this.videoId && this.videoId.length > 0) {
       this.url += `&relatedToVideoId=${this.relVideoId}&type=video`;
     } else if (this.channelId && this.channelId.length > 0) {
@@ -153,6 +154,7 @@ export default {
           }
         });
         this.filter('all');
+        this.$emit('filter', 'all');
         this.loading = false;
       });
     },

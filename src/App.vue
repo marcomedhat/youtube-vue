@@ -1,27 +1,41 @@
 <template>
   <div id="app">
     <Header :openVideo="openVideo"></Header>
-    <router-view class="content" v-on:videoPage="videoPage" />
+    <FilterSection :type="type" v-on:filter="filter" v-if="searchPage()" />
+    <router-view class="content" v-on:videoPage="videoPage" :type="type" v-on:filter="filter" />
   </div>
 </template>
 
 <script>
 import Header from './components/Header.vue'
+import FilterSection from './components/Filter.vue'
 
 export default {
   name: 'App',
   components: {
-    Header
+    Header,
+    FilterSection
   },
   data() {
     return {
-      openVideo: false
+      openVideo: false,
+      type: ''
     }
   },
   methods: {
     videoPage(val) {
       console.log('app-val', val);
       this.openVideo = val;
+    },
+    filter(type) {
+      this.type = type;
+    },
+    searchPage() {
+      if(this.$route.path == '/search') {
+        return true;
+      } else {
+        return false;
+      }
     }
   }
 }
