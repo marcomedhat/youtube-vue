@@ -1,11 +1,14 @@
 <template>
   <div class="header">
     <div class="logo">
-      <img src="..\assets\YouTube-Logo-white.png" alt="Youtube Logo">
+      <router-link to="/" exact>
+        <img src="..\assets\YouTube-Logo-white.png" alt="Youtube Logo">
+      </router-link>
     </div>
   
     <div class="search-field">
-      <input type="text" placeholder="Search For Videos" v-model="searchText">
+      <input type="text" placeholder="Search For Videos" v-model="searchText" v-if="!searchPage && showSearch">
+      <p v-else-if="searchPage">{{searchText}}</p>
     </div>
 
     <div class="serch-icon">
@@ -20,7 +23,9 @@ export default {
   name: 'Header',
   data() {
     return {
-      searchText: ''
+      searchText: '',
+      searchPage: false,
+      showSearch: false
     }
   },
   created() {
@@ -28,7 +33,12 @@ export default {
   },
   methods: {
     searchVideos: function() {
-      this.$emit('searchVideos', this.searchText)
+      if (!this.showSearch) {
+        this.showSearch = true;
+      } else if (this.showSearch) {
+        this.$router.push({ path: 'search', query: { query: this.searchText }});  
+        this.searchPage = true;
+      }
     }
   }
 }
