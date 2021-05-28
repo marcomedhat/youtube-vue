@@ -7,7 +7,8 @@
     </div>
     <div class="video-details">
       <h3 class="video-title">{{videoTitle}}</h3>
-      <h4 class="channel-title">{{channelTitle}} - <span>{{views}} Views</span></h4>
+      <h4 class="channel-title">
+        <router-link :to="`/channel/${channelId}`">{{channelTitle}}</router-link> - <span>{{views}} Views</span></h4>
     </div>
     <Search :videoId="videoId"></Search> 
   </div>
