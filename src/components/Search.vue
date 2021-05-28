@@ -1,5 +1,6 @@
 <template>
     <div class="search-results">
+      <FilterSection :type="type" v-on:filter="filter" />
       <div class="search-result" v-bind:key="searchResult.id.videoId" v-for="searchResult in filteredResults">
         <div class="card channel" v-if="searchResult.kind == 'youtube#channel'">
           <div class="card-image">
@@ -46,6 +47,7 @@
 </template>
 
 <script>
+import FilterSection from './Filter.vue'
 
 export default {
   name: 'Home',
@@ -69,6 +71,9 @@ export default {
         }    
     }
   },
+  components: {
+    FilterSection
+  },
   data() {
     return {
       searchText: this.$route.query.query,
@@ -77,10 +82,13 @@ export default {
       searchResults: [],
       relVideoId: '',
       relChannelId: '',
-      loading: false
+      loading: false,
+      type: 'all',
+      filteredResults: []
     }
   },
   created() {
+    // this.type = 'all';
     if (this.videoId && this.videoId.length > 0) {
       this.url += `&relatedToVideoId=${this.relVideoId}&type=video`;
     } else if (this.channelId && this.channelId.length > 0) {
@@ -91,7 +99,6 @@ export default {
     this.searchResults = [];
     this.$http.get(this.url)
     .then(data => {
-      console.log('data', data);
       this.pageToken = data.body.nextPageToken;
       data.body.items.forEach(element => {
         if(element.id.videoId) {
@@ -99,12 +106,14 @@ export default {
           this.$http.get(`https://www.googleapis.com/youtube/v3/videos?part=snippet%2Cstatistics&id=${id}&key=AIzaSyBObo-4LwV58IPz2qzPBHkrlBnYlBCLpog`)
           .then(data => {
             this.searchResults.push(data.body.items[0]);
+            this.filteredResults.push(data.body.items[0]);
           });
         } else if (element.id.channelId) {
           let id = element.id.channelId;
           this.$http.get(`https://www.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails%2Cstatistics%2CbrandingSettings&id=${id}&key=AIzaSyBObo-4LwV58IPz2qzPBHkrlBnYlBCLpog`)
             .then(data => {
               this.searchResults.unshift(data.body.items[0]);
+              this.filteredResults.unshift(data.body.items[0]);
             });
         }
       });
@@ -132,8 +141,23 @@ export default {
               });
           }
         });
+        this.filter('all');
         this.loading = false;
       });
+    },
+    filter(type) {
+      this.type = type;
+      if(type == "all") {
+        this.filteredResults = [...this.searchResults];
+      } else if (type == "channel") {
+        this.filteredResults = this.searchResults.filter(element => {
+          return element.kind === "youtube#channel";
+        });
+      } else if (type == "video") {
+        this.filteredResults = this.searchResults.filter(element => {
+          return element.kind === "youtube#video";
+        });
+      }
     }
   }
 }
