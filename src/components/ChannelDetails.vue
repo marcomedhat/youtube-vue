@@ -60,10 +60,11 @@ export default {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: lightgray;
+    background-color: #e0dede;
   }
   &-images {
     position: relative;
+    width: 100%;
   }
   &-banner {
     height: 100px;
@@ -85,6 +86,18 @@ export default {
     padding: 0 1.5rem;
     font-size: 0.7rem;
     width: 60%;
+  }
+}
+@media only screen and (min-width: 768px) {
+  .channel{
+    &-banner {
+      height: auto;
+    }
+    &-logo {
+      transform: scale(1);
+      bottom: -20%;
+    }
+
   }
 }
 </style>
