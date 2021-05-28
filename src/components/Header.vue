@@ -9,8 +9,9 @@
   
     <div class="search-field">
       <input type="search" placeholder="Search For Videos" v-model="searchText" v-if="showSearch" class="mobile">
-      <input type="search" placeholder="Search For Videos" v-model="searchText" v-if="!searchPage" class="desktop">
-      <p v-if="searchPage" class="search-text">{{searchText}}</p>
+      <input type="search" placeholder="Search For Videos" v-model="searchText" class="desktop">
+      <p v-if="searchPage && !videoPage" class="search-text">{{searchText}}</p>
+      <p v-else-if="videoPage && !showSearch" class="search-text mobile">YouTube</p>
     </div>
 
     <div class="search-icon">
@@ -23,18 +24,33 @@
 <script>
 export default {
   name: 'Header',
+  props: ['openVideo'],
+  watch: {
+    openVideo: {
+      immediate: true, 
+      handler (val) {
+        console.log('val', val);
+        this.videoPage = val;
+      }
+    }
+  },
   data() {
     return {
       searchText: '',
       searchPage: false,
-      showSearch: false
+      showSearch: false,
+      videoPage: false
     }
   },
   created() {
-    if (this.$route.query.query) {
+    if (this.$route.query.query && !this.$route.params.id) {
       this.searchText = this.$route.query.query;
       this.searchPage = true;
+      this.videoPage = false;
+    } else if (this.$route.params.id) {
+      this.videoPage = true;
     }
+    console.log('video',this.videoPage);
   },
   methods: {
     searchVideos: function() {
@@ -69,9 +85,9 @@ export default {
     align-items: center;
     background-color: #ff0000;
     padding: 10px;
-    -webkit-box-shadow: 0px 3px 7px 0px rgba(0,0,0,0.75);
-    -moz-box-shadow: 0px 3px 7px 0px rgba(0,0,0,0.75);
-    box-shadow: 0px 3px 7px 0px rgba(0,0,0,0.75);
+    -webkit-box-shadow: 0px 1px 7px 0px rgba(0,0,0,0.75);
+    -moz-box-shadow: 0px 1px 7px 0px rgba(0,0,0,0.75);
+    box-shadow: 0px 1px 7px 0px rgba(0,0,0,0.75);
     > div {
       padding: 0 0.3rem;
     }
@@ -100,6 +116,7 @@ export default {
       .search-text {
         color: #fff;
         text-align: center;
+        font-size: 0.9rem;
       }
     }
     .search-icon {
@@ -111,7 +128,7 @@ export default {
     .header {
       background-color: #fff;
       height: 80px;
-      padding: 0 20px;
+      padding: 0 5%;
       position: fixed;
       width: 100%;
       z-index: 2;
@@ -132,9 +149,8 @@ export default {
             display: block
           }
         }
-        .search-text {
-          font-size: 1.5rem;
-          color: #000;
+        .search-text.mobile {
+          display: none;
         }
       }
       .search-icon i {

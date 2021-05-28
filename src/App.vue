@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <Header></Header>
-    <router-view class="content" />
+    <Header :openVideo="openVideo"></Header>
+    <router-view class="content" v-on:videoPage="videoPage" />
   </div>
 </template>
 
@@ -15,11 +15,14 @@ export default {
   },
   data() {
     return {
-
+      openVideo: false
     }
   },
   methods: {
-
+    videoPage(val) {
+      console.log('app-val', val);
+      this.openVideo = val;
+    }
   }
 }
 </script>
@@ -39,6 +42,8 @@ body {
 @media only screen and (min-width: 768px) {
   .content {
     padding-top: 80px;
+    /* width: 90%;
+    margin: 0 auto; */
   }
 }
 </style>
