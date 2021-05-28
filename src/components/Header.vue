@@ -7,7 +7,7 @@
     </div>
   
     <div class="search-field">
-      <input type="text" placeholder="Search For Videos" v-model="searchText" v-if="!searchPage && showSearch">
+      <input type="text" placeholder="Search For Videos" v-model="searchText" v-if="showSearch">
       <p v-else-if="searchPage">{{searchText}}</p>
     </div>
 
@@ -35,9 +35,11 @@ export default {
     searchVideos: function() {
       if (!this.showSearch) {
         this.showSearch = true;
+        this.searchPage = false;
       } else if (this.showSearch) {
-        this.$router.push({ path: 'search', query: { query: this.searchText }});  
+        this.$router.push({ path: '/search', query: { query: this.searchText }});  
         this.searchPage = true;
+        this.showSearch = false;
       }
     }
   }
