@@ -5,11 +5,11 @@
     </div>
   
     <div class="search-field">
-      <input type="text" placeholder="Search For Videos">
+      <input type="text" placeholder="Search For Videos" v-model="searchText">
     </div>
 
     <div class="serch-icon">
-      <i class="fas fa-search"></i>
+      <i class="fas fa-search" @click="searchVideos"></i>
     </div>
 
   </div>
@@ -20,11 +20,16 @@ export default {
   name: 'Header',
   data() {
     return {
-      
+      searchText: ''
     }
   },
   created() {
 
+  },
+  methods: {
+    searchVideos: function() {
+      this.$emit('searchVideos', this.searchText)
+    }
   }
 }
 </script>
