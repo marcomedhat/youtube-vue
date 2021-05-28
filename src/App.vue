@@ -24,7 +24,6 @@ export default {
   },
   methods: {
     videoPage(val) {
-      console.log('app-val', val);
       this.openVideo = val;
     },
     filter(type) {
@@ -42,22 +41,15 @@ export default {
 </script>
 
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-body {
-  width: 100%;
-  height: 100%;
-  background-color: #f3f3f3;
-  font-family: sans-serif;
-}
-@media only screen and (min-width: 768px) {
-  .content {
-    padding-top: 80px;
-    /* width: 90%;
-    margin: 0 auto; */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
   }
-}
+  body {
+    width: 100%;
+    height: 100%;
+    background-color: #f3f3f3;
+    font-family: sans-serif;
+  }
 </style>

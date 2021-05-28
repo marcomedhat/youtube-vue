@@ -10,8 +10,8 @@
     <div class="search-field">
       <input type="search" placeholder="Search For Videos" v-model="searchText" v-if="showSearch" class="mobile">
       <input type="search" placeholder="Search For Videos" v-model="searchText" class="desktop">
-      <p v-if="searchPage && !videoPage" class="search-text">{{searchText}}</p>
-      <p v-else-if="videoPage && !showSearch" class="search-text mobile">YouTube</p>
+      <p v-if="searchPage && !showSearch" class="search-text">{{searchText}}</p>
+      <p v-else-if="videoPage && !showSearch && !searchText" class="search-text mobile">YouTube</p>
     </div>
 
     <div class="search-icon">
@@ -29,7 +29,6 @@ export default {
     openVideo: {
       immediate: true, 
       handler (val) {
-        console.log('val', val);
         this.videoPage = val;
       }
     }
@@ -50,7 +49,6 @@ export default {
     } else if (this.$route.params.id) {
       this.videoPage = true;
     }
-    console.log('video',this.videoPage);
   },
   methods: {
     searchVideos: function() {

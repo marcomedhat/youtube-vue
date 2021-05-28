@@ -38,10 +38,10 @@ export default {
     }
   }
   @media only screen and (min-width: 768px) {
-  .home {
-    h1 {
-      font-size: 2rem;
+    .home {
+      h1 {
+        font-size: 2rem;
+      }
     }
   }
-}
 </style>

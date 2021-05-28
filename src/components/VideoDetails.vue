@@ -1,105 +1,322 @@
 <template>
-  <div class="video">
-    <div class="video-container">
-       <iframe width="100%" height="270" :src='`//www.youtube.com/embed/${videoId}`' 
-       frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" 
-       allowfullscreen></iframe>
+  <div class="results">
+    <div class="spinner-container mobile" v-if="filteredResults.length == 0">
+      <div class="lds-default">
+        <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+      </div>
     </div>
-    <div class="video-details">
-      <h3 class="video-title">{{videoTitle}}</h3>
-      <p class="channel-title">
-        <router-link :to="`/channel/${channelId}`">{{channelTitle}}</router-link> - <span>{{views}} Views</span>
-      </p>
+    <div class="search-results" v-if="filteredResults.length > 0">
+      <div class="search-result" v-bind:key="searchResult.id" v-for="searchResult in filteredResults">
+        <div class="card channel" v-if="searchResult.kind == 'youtube#channel'">
+          <div class="card-image">
+            <router-link :to="`/channel/${searchResult.id}`">
+              <img :src="searchResult.snippet.thumbnails.default.url" :alt="searchResult.snippet.description">
+            </router-link>
+          </div>
+          <div class="card-details">
+            <router-link :to="`/channel/${searchResult.id}`">
+              <h3>{{searchResult.snippet.title}}</h3>
+            </router-link>
+            <p>{{searchResult.statistics.videoCount}} Videos</p>
+            <p>{{searchResult.statistics.subscriberCount}} Subscribers</p>
+          </div>
+        </div>
+        <div class="card video" v-if="searchResult.kind == 'youtube#video'">
+          <div class="card-image">
+            <router-link :to="`/video/${searchResult.id}`">
+              <img :src="searchResult.snippet.thumbnails.default.url" :alt="searchResult.snippet.description">
+            </router-link>
+          </div>
+          <div class="card-details">
+            <router-link :to="`/video/${searchResult.id}`">
+              <h3>{{searchResult.snippet.title}}</h3>
+            </router-link>
+            <router-link :to="`/channel/${searchResult.snippet.channelId}`">
+              <p>{{searchResult.snippet.channelTitle}}</p>
+            </router-link>
+            <p>{{searchResult.statistics.viewCount}} Views</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="load-more">
+        <button @click="loadMore" v-if="!loading">Show more items</button>
+        <div class="spinner-container" v-if="loading">
+          <div class="lds-default">
+            <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+          </div>
+        </div>
+      </div>
+      
     </div>
-    <Search :videoId="videoId"></Search> 
   </div>
+    
 </template>
 
 <script>
-import Search from './Search.vue'
 
 export default {
-  name: 'VideoDetails',
-  components: {
-    Search
-  },
+  name: 'Home',
+  props: ['videoId', 'channelId', 'type'],
   watch: {
+    videoId: {
+      immediate: true, 
+      handler (val) {
+        this.relVideoId = val;
+      }
+    },
+    channelId: {
+      immediate: true, 
+      handler (val) {
+        this.relChannelId = val;
+      }
+    },
     '$route' (to, from) {
-      if(from.params.id && to.params.id){ 
+      if(from.query.query && to.query.query){ 
         this.$router.go()
         }    
+    },
+    type: {
+      immediate: true, 
+      handler (val) {
+        this.selectedType = val;
+        this.filter(this.selectedType);
+      }
     }
   },
   data() {
     return {
-      videoId: this.$route.params.id,
-      videoTitle: '',
-      channelTitle: '',
-      channelId: '',
-      views: ''
+      searchText: this.$route.query.query,
+      url: 'https://www.googleapis.com/youtube/v3/search?part=snippet&key=AIzaSyDQXj81_wnnL_Uu3Tx0jxKEXqmXEkbDZ-0',
+      pageToken: '',
+      searchResults: [],
+      relVideoId: '',
+      relChannelId: '',
+      loading: false,
+      selectedType: 'all',
+      filteredResults: []
     }
   },
   created() {
-    console.log(this.videoId);
-    this.$http.get(`https://www.googleapis.com/youtube/v3/videos?part=snippet%2Cstatistics&id=${this.videoId}&key=AIzaSyBbAGlJBPcVPgZE_mr2bYHJFmGe9l-egQQ`)
-      .then(data => {
-        console.log(data);
-        this.videoTitle = data.body.items[0].snippet.title;
-        this.channelTitle = data.body.items[0].snippet.channelTitle;
-        this.channelId = data.body.items[0].snippet.channelId;
-        this.views = data.body.items[0].statistics.viewCount;
-        this.$emit('videoPage', true);
+    if (this.videoId && this.videoId.length > 0) {
+      this.url += `&relatedToVideoId=${this.relVideoId}&type=video`;
+    } else if (this.channelId && this.channelId.length > 0) {
+      this.url += `&channelId=${this.channelId}`;
+    } else if (this.searchText && this.searchText.length > 0) {
+      this.url += `&q=${this.searchText}`;
+    }
+    this.searchResults = [];
+    this.$http.get(this.url)
+    .then(data => {
+      this.pageToken = data.body.nextPageToken;
+      data.body.items.forEach(element => {
+        if(element.id.videoId) {
+          let id = element.id.videoId;
+          this.$http.get(`https://www.googleapis.com/youtube/v3/videos?part=snippet%2Cstatistics&id=${id}&key=AIzaSyDQXj81_wnnL_Uu3Tx0jxKEXqmXEkbDZ-0`)
+          .then(data => {
+            this.searchResults.push(data.body.items[0]);
+            this.filteredResults.push(data.body.items[0]);
+          });
+        } else if (element.id.channelId) {
+          let id = element.id.channelId;
+          this.$http.get(`https://www.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails%2Cstatistics%2CbrandingSettings&id=${id}&key=AIzaSyDQXj81_wnnL_Uu3Tx0jxKEXqmXEkbDZ-0`)
+            .then(data => {
+              this.searchResults.unshift(data.body.items[0]);
+              this.filteredResults.unshift(data.body.items[0]);
+            });
+        }
       });
-    
+    });
   },
   methods: {
-    
+    loadMore: function() {
+      this.loading = true;
+      this.url += `&pageToken=${this.pageToken}`;
+      this.$http.get(this.url)
+      .then(data => {
+        this.pageToken = data.body.nextPageToken;
+        data.body.items.forEach(element => {
+          if(element.id.videoId) {
+            let id = element.id.videoId;
+            this.$http.get(`https://www.googleapis.com/youtube/v3/videos?part=snippet%2Cstatistics&id=${id}&key=AIzaSyDQXj81_wnnL_Uu3Tx0jxKEXqmXEkbDZ-0`)
+            .then(data => {
+              this.searchResults.push(data.body.items[0]);
+            });
+          } else if (element.id.channelId) {
+            let id = element.id.channelId;
+            this.$http.get(`https://www.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails%2Cstatistics%2CbrandingSettings&id=${id}&key=AIzaSyDQXj81_wnnL_Uu3Tx0jxKEXqmXEkbDZ-0`)
+              .then(data => {
+                this.searchResults.push(data.body.items[0]);
+              });
+          }
+        });
+        this.filter('all');
+        this.$emit('filter', 'all');
+        this.loading = false;
+      });
+    },
+    filter(type) {
+      this.selectedType = type;
+      if(type == "all") {
+        return this.filteredResults = [...this.searchResults];
+      } else if (type == "channel") {
+        this.filteredResults = this.searchResults.filter(element => {
+          return element.kind === "youtube#channel";
+        });
+      } else if (type == "video") {
+        this.filteredResults = this.searchResults.filter(element => {
+          return element.kind === "youtube#video";
+        });
+      }
+    }
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
-.video {
-  
-  &-details {
-    padding: 10px;
-    font-size: 0.8rem;
-    h3 {
-      color: #000;
-      margin-bottom: 10px;
-    }
-    a {
-      text-decoration: none;
-      cursor: pointer;
-      color: gray;
-      margin-bottom: 5px;
-    }
-    p {
-      color: gray;
-    }
-  }
-}
-
-@media only screen and (min-width: 768px) {
-  .video {
-    &-container,
-    &-details {
-      width: 90%;
-      margin: 15px auto 0;
-    }
-    &-container {
-      iframe {
-        height: 450px;
+  .search-results {
+    padding-top: 20px;
+    .search-result {
+      margin: 10px 20px;
+      .card {
+        display: flex;
+        a {
+          text-decoration: none;
+          cursor: pointer;
+          h3 {
+            color: #000;
+            margin-bottom: 10px;
+          }
+          p:hover {
+            color: darkgray;
+          }
+        }
+        p {
+          color: gray;
+          margin-bottom: 5px;
+        }
+        .card-details {
+          padding-left: 2rem;
+        }
+        &.channel {
+          img {
+            border-radius: 50%;
+          }
+        }
       }
     }
-    &-details {
-      font-size: 1rem;
-      h3 {
-        margin-bottom: 10px;
-      } 
+    .load-more {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      button {
+        width: 100%;
+        height: 50px;
+        border: none;
+        border-top: 1px solid #000;
+        background-color: #fff;
+        color: #000;
+      }
     }
   }
-}
-  
+  .spinner-container {
+    margin-left: -42.5px;
+    &.mobile {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+  .lds-default {
+    display: inline-block;
+    position: relative;
+    width: 40px;
+    height: 40px;
+  }
+  .lds-default div {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: gray;
+    border-radius: 50%;
+    animation: lds-default 1.2s linear infinite;
+  }
+  .lds-default div:nth-child(1) {
+    animation-delay: 0s;
+    top: 37px;
+    left: 66px;
+  }
+  .lds-default div:nth-child(2) {
+    animation-delay: -0.1s;
+    top: 22px;
+    left: 62px;
+  }
+  .lds-default div:nth-child(3) {
+    animation-delay: -0.2s;
+    top: 11px;
+    left: 52px;
+  }
+  .lds-default div:nth-child(4) {
+    animation-delay: -0.3s;
+    top: 7px;
+    left: 37px;
+  }
+  .lds-default div:nth-child(5) {
+    animation-delay: -0.4s;
+    top: 11px;
+    left: 22px;
+  }
+  .lds-default div:nth-child(6) {
+    animation-delay: -0.5s;
+    top: 22px;
+    left: 11px;
+  }
+  .lds-default div:nth-child(7) {
+    animation-delay: -0.6s;
+    top: 37px;
+    left: 7px;
+  }
+  .lds-default div:nth-child(8) {
+    animation-delay: -0.7s;
+    top: 52px;
+    left: 11px;
+  }
+  .lds-default div:nth-child(9) {
+    animation-delay: -0.8s;
+    top: 62px;
+    left: 22px;
+  }
+  .lds-default div:nth-child(10) {
+    animation-delay: -0.9s;
+    top: 66px;
+    left: 37px;
+  }
+  .lds-default div:nth-child(11) {
+    animation-delay: -1s;
+    top: 62px;
+    left: 52px;
+  }
+  .lds-default div:nth-child(12) {
+    animation-delay: -1.1s;
+    top: 52px;
+    left: 62px;
+  }
+  @keyframes lds-default {
+    0%, 20%, 80%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.5);
+    }
+  }
+  @media only screen and (min-width: 768px) {
+    .search-results {
+      .search-result {
+        margin: 10px 5%; 
+      }
+    }
+  }
 </style>
