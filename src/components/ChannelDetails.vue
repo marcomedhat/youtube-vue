@@ -1,0 +1,87 @@
+<template>
+  <div class="channel">
+    <div class="channel-header">
+      <div class="channel-images">
+        <img :src="channelBanner" class="channel-banner">
+        <img :src="channelImage" class="channel-logo">
+      </div>
+      <div class="channel-details">
+        <h2 class="channel-title">{{channelTitle}}</h2>
+        <p class="channel-subscribers">{{channelSubscribers}}</p>
+      </div> 
+    </div>
+    <Search :channelId="channelId"></Search> 
+  </div>
+</template>
+
+<script>
+import Search from './Search.vue'
+
+export default {
+  name: 'VideoDetails',
+  components: {
+    Search
+  },
+  data() {
+    return {
+      channelId: this.$route.params.id,
+      // videoTitle: '',
+      channelTitle: '',
+      channelImage: '',
+      channelBanner: '',
+      channelSubscribers: ''
+      // views: ''
+    }
+  },
+  created() {
+    console.log(this.channelId);
+    this.$http.get(`https://www.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails%2Cstatistics%2CbrandingSettings&id=${this.channelId}&key=AIzaSyBObo-4LwV58IPz2qzPBHkrlBnYlBCLpog`)
+      .then(data => {
+        console.log('channel', data);
+        this.channelTitle = data.body.items[0].snippet.title;
+        this.channelSubscribers = data.body.items[0].statistics.subscriberCount;
+        this.channelImage = data.body.items[0].snippet.thumbnails.default.url;
+        this.channelBanner = data.body.items[0].brandingSettings.image.bannerImageUrl;
+        // this.channelTitle = data.body.items[0].snippet.channelTitle;
+        // this.channelId = data.body.items[0].snippet.channelId;
+        // this.views = data.body.items[0].statistics.viewCount;
+      });
+  },
+  methods: {
+    
+  }
+}
+</script>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped lang="scss">
+.channel{
+  &-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: lightgray;
+  }
+  &-images {
+    position: relative;
+  }
+  &-banner {
+    height: 100px;
+    object-fit: cover;
+    width: 100%;
+  }
+  &-logo {
+    position: absolute;
+    bottom: -40%;
+    left: 5%;
+    border-radius: 50%;
+    transform: scale(0.9);
+  }
+  &-details {
+    height: 75px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+}
+</style>
