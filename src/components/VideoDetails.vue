@@ -7,8 +7,9 @@
     </div>
     <div class="video-details">
       <h3 class="video-title">{{videoTitle}}</h3>
-      <h4 class="channel-title">
-        <router-link :to="`/channel/${channelId}`">{{channelTitle}}</router-link> - <span>{{views}} Views</span></h4>
+      <p class="channel-title">
+        <router-link :to="`/channel/${channelId}`">{{channelTitle}}</router-link> - <span>{{views}} Views</span>
+      </p>
     </div>
     <Search :videoId="videoId"></Search> 
   </div>
@@ -22,6 +23,13 @@ export default {
   components: {
     Search
   },
+  watch: {
+    '$route' (to, from) {
+      if(from.params.id && to.params.id){ 
+        this.$router.go()
+        }    
+    }
+  },
   data() {
     return {
       videoId: this.$route.params.id,
@@ -33,14 +41,16 @@ export default {
   },
   created() {
     console.log(this.videoId);
-    this.$http.get(`https://www.googleapis.com/youtube/v3/videos?part=snippet%2Cstatistics&id=${this.videoId}&key=AIzaSyBObo-4LwV58IPz2qzPBHkrlBnYlBCLpog`)
+    this.$http.get(`https://www.googleapis.com/youtube/v3/videos?part=snippet%2Cstatistics&id=${this.videoId}&key=AIzaSyBbAGlJBPcVPgZE_mr2bYHJFmGe9l-egQQ`)
       .then(data => {
         console.log(data);
         this.videoTitle = data.body.items[0].snippet.title;
         this.channelTitle = data.body.items[0].snippet.channelTitle;
         this.channelId = data.body.items[0].snippet.channelId;
         this.views = data.body.items[0].statistics.viewCount;
+        this.$emit('videoPage', true);
       });
+    
   },
   methods: {
     
@@ -51,7 +61,45 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
 .video {
-  padding: 2px;
+  
+  &-details {
+    padding: 10px;
+    font-size: 0.8rem;
+    h3 {
+      color: #000;
+      margin-bottom: 10px;
+    }
+    a {
+      text-decoration: none;
+      cursor: pointer;
+      color: gray;
+      margin-bottom: 5px;
+    }
+    p {
+      color: gray;
+    }
+  }
+}
+
+@media only screen and (min-width: 768px) {
+  .video {
+    &-container,
+    &-details {
+      width: 90%;
+      margin: 15px auto 0;
+    }
+    &-container {
+      iframe {
+        height: 450px;
+      }
+    }
+    &-details {
+      font-size: 1rem;
+      h3 {
+        margin-bottom: 10px;
+      } 
+    }
+  }
 }
   
 </style>
