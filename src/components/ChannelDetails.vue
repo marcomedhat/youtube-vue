@@ -25,26 +25,22 @@ export default {
   data() {
     return {
       channelId: this.$route.params.id,
-      // videoTitle: '',
       channelTitle: '',
       channelImage: '',
       channelBanner: '',
       channelSubscribers: ''
-      // views: ''
     }
   },
   created() {
     console.log(this.channelId);
-    this.$http.get(`https://www.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails%2Cstatistics%2CbrandingSettings&id=${this.channelId}&key=AIzaSyBObo-4LwV58IPz2qzPBHkrlBnYlBCLpog`)
+    this.$http.get(`https://www.googleapis.com/youtube/v3/channels?part=snippet%2CcontentDetails%2Cstatistics%2CbrandingSettings&id=${this.channelId}&key=AIzaSyBbAGlJBPcVPgZE_mr2bYHJFmGe9l-egQQ`)
       .then(data => {
         console.log('channel', data);
         this.channelTitle = data.body.items[0].snippet.title;
         this.channelSubscribers = data.body.items[0].statistics.subscriberCount;
         this.channelImage = data.body.items[0].snippet.thumbnails.default.url;
         this.channelBanner = data.body.items[0].brandingSettings.image.bannerImageUrl;
-        // this.channelTitle = data.body.items[0].snippet.channelTitle;
-        // this.channelId = data.body.items[0].snippet.channelId;
-        // this.views = data.body.items[0].statistics.viewCount;
+        this.$emit('videoPage', false);
       });
   },
   methods: {
@@ -86,6 +82,9 @@ export default {
     padding: 0 1.5rem;
     font-size: 0.7rem;
     width: 60%;
+    h2 {
+      margin-bottom: 10px;
+    }
   }
 }
 @media only screen and (min-width: 768px) {
@@ -97,7 +96,9 @@ export default {
       transform: scale(1);
       bottom: -20%;
     }
-
+    &-details {
+      font-size: 1rem;
+    }
   }
 }
 </style>
